@@ -231,7 +231,7 @@ function SplitImageProcessor.exportSplitImage(photo, cols, rows, passpartoutMm, 
 						extension
 					)
 					
-					local exportPath = LrPathUtils.child(exportPath, fileName)
+					local exportFilePath = LrPathUtils.child(exportPath, fileName)
 					
 					-- Export the copy
 					local exportSuccess, exportError = pcall(function()
@@ -239,7 +239,7 @@ function SplitImageProcessor.exportSplitImage(photo, cols, rows, passpartoutMm, 
 							photosToExport = {copy},
 							exportSettings = {
 								LR_export_destinationType = "specificFolder",
-								LR_export_destinationPathPrefix = exportPath,
+								LR_export_destinationPathPrefix = exportFilePath,
 								LR_format = format,
 								LR_jpeg_quality = quality / 100,
 								LR_size_doNotEnlarge = false,
