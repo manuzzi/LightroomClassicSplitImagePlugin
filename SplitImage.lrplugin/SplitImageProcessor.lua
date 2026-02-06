@@ -73,8 +73,8 @@ function SplitImageProcessor.splitImage(photo, cols, rows, passpartoutMm, create
 	
 	-- Get image dimensions in pixels
 	local photoMetadata = photo:getFormattedMetadata("dimensions")
-	local width = photo:getRawMetadata("croppedWidth") or photo:getRawMetadata("width") or 1000
-	local height = photo:getRawMetadata("croppedHeight") or photo:getRawMetadata("height") or 1000
+	local width = photo:getRawMetadata("width") or 1000
+	local height = photo:getRawMetadata("height") or 1000
 	
 	-- Use provided DPI or default to 300
 	dpi = dpi or 300
@@ -193,8 +193,8 @@ function SplitImageProcessor.exportSplitImage(photo, cols, rows, passpartoutMm, 
 	local catalog = LrApplication.activeCatalog()
 	
 	-- Get image dimensions in pixels
-	local width = photo:getRawMetadata("croppedWidth") or photo:getRawMetadata("width") or 1000
-	local height = photo:getRawMetadata("croppedHeight") or photo:getRawMetadata("height") or 1000
+	local width = photo:getRawMetadata("width") or 1000
+	local height = photo:getRawMetadata("height") or 1000
 	
 	-- Use provided DPI or default to 300
 	dpi = dpi or 300

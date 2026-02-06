@@ -29,8 +29,8 @@ local function showDialog()
 		
 		-- Get first photo for metadata
 		local firstPhoto = photos[1]
-		local photoWidth = firstPhoto:getRawMetadata("croppedWidth") or firstPhoto:getRawMetadata("width") or 1000
-		local photoHeight = firstPhoto:getRawMetadata("croppedHeight") or firstPhoto:getRawMetadata("height") or 1000
+		local photoWidth = firstPhoto:getRawMetadata("width") or 1000
+		local photoHeight = firstPhoto:getRawMetadata("height") or 1000
 		
 		-- Create observable properties
 		local props = LrBinding.makePropertyTable(context)
