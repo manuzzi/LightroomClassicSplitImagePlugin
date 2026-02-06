@@ -6,9 +6,6 @@ Core image processing logic for Split Image Plugin
 ------------------------------------------------------------------------------]]
 
 local LrApplication = import 'LrApplication'
-local LrExportSession = import 'LrExportSession'
-local LrPathUtils = import 'LrPathUtils'
-local LrFileUtils = import 'LrFileUtils'
 
 SplitImageProcessor = {}
 
@@ -97,14 +94,10 @@ function SplitImageProcessor.splitImage(photo, cols, rows, passpartoutMm, create
 		for col = 0, cols - 1 do
 			local copy
 			
-			if createVirtualCopies then
-				-- Create virtual copy
-				copy = photo:createVirtualCopy()
-			else
-				-- For non-virtual copies, we'd need to create actual file copies
-				-- This is more complex and requires export/import cycle
-				-- For now, we'll always use virtual copies
-				copy = photo:createVirtualCopy()
+			-- Create virtual copy using catalog API
+			local virtualCopies = catalog:createVirtualCopies(photo)
+			if virtualCopies and #virtualCopies > 0 then
+				copy = virtualCopies[1]
 			end
 			
 			if copy then
@@ -172,134 +165,6 @@ function SplitImageProcessor.splitImage(photo, cols, rows, passpartoutMm, create
 	end
 	
 	return copies
-end
-
---------------------------------------------------------------------------------
--- Export split image sections
--- @param photo The photo to export
--- @param cols Number of columns
--- @param rows Number of rows
--- @param passpartoutMm Distance between frames in mm
--- @param exportPath Path to export to
--- @param format Export format (JPEG, PNG, TIFF)
--- @param quality JPEG quality (0-100)
--- @param progressCallback Function to call with progress updates
--- @param imageSizeMmWidth Image width in mm (optional, for accurate passpartout calculation)
--- @param imageSizeMmHeight Image height in mm (optional, for accurate passpartout calculation)
--- @param dpi DPI for mm to pixel conversion (optional, defaults to 300)
--- @return success, errorMessage
---------------------------------------------------------------------------------
-function SplitImageProcessor.exportSplitImage(photo, cols, rows, passpartoutMm, exportPath, format, quality, progressCallback, imageSizeMmWidth, imageSizeMmHeight, dpi)
-	local catalog = LrApplication.activeCatalog()
-	
-	-- Get image dimensions in pixels
-	local width = photo:getRawMetadata("width") or 1000
-	local height = photo:getRawMetadata("height") or 1000
-	
-	-- Use provided DPI or default to 300
-	dpi = dpi or 300
-	
-	-- If image size in mm is provided, use it to calculate the effective image dimensions
-	-- Otherwise, use pixel dimensions directly
-	local effectiveWidth = width
-	local effectiveHeight = height
-	
-	if imageSizeMmWidth and imageSizeMmHeight then
-		-- Convert mm to pixels based on DPI
-		effectiveWidth = (imageSizeMmWidth / 25.4) * dpi
-		effectiveHeight = (imageSizeMmHeight / 25.4) * dpi
-	end
-	
-	local originalFileName = LrPathUtils.removeExtension(photo:getFormattedMetadata("fileName") or "photo")
-	
-	-- Determine file extension
-	local extension = "jpg"
-	if format == "PNG" then
-		extension = "png"
-	elseif format == "TIFF" then
-		extension = "tif"
-	end
-	
-	local success = true
-	local errorMessage = nil
-	
-	-- Create temporary virtual copies for export
-	local copiesToDelete = {}
-	
-	catalog:withWriteAccessDo("Create export copies", function()
-		for row = 0, rows - 1 do
-			for col = 0, cols - 1 do
-				local cellIndex = row * cols + col + 1
-				
-				if progressCallback then
-					local caption = string.format("Exporting section %d of %d", cellIndex, cols * rows)
-					progressCallback(cellIndex, cols * rows, caption)
-				end
-				
-				-- Create virtual copy for this cell
-				local copy = photo:createVirtualCopy()
-				if copy then
-					table.insert(copiesToDelete, copy)
-					
-					-- Apply crop
-					local left, top, right, bottom = calculateCropForCell(
-						col, row, cols, rows, passpartoutMm, effectiveWidth, effectiveHeight, dpi
-					)
-					
-					copy:applyDevelopSettings({
-						CropLeft = left,
-						CropTop = top,
-						CropRight = right,
-						CropBottom = bottom,
-						CropConstrainToWarp = false,
-					})
-					
-					-- Generate filename
-					local fileName = string.format("%s_grid_%dx%d_r%d_c%d.%s",
-						originalFileName,
-						cols, rows,
-						row + 1,
-						col + 1,
-						extension
-					)
-					
-					local exportFilePath = LrPathUtils.child(exportPath, fileName)
-					
-					-- Export the copy
-					local exportSuccess, exportError = pcall(function()
-						local exportSession = LrExportSession({
-							photosToExport = {copy},
-							exportSettings = {
-								LR_export_destinationType = "specificFolder",
-								LR_export_destinationPathPrefix = exportFilePath,
-								LR_format = format,
-								LR_jpeg_quality = quality / 100,
-								LR_size_doNotEnlarge = false,
-								LR_size_resolution = 300,
-								LR_size_resolutionUnits = "inch",
-							},
-						})
-						
-						exportSession:doExportOnCurrentTask()
-					end)
-					
-					if not exportSuccess then
-						success = false
-						errorMessage = tostring(exportError)
-					end
-				end
-			end
-		end
-	end)
-	
-	-- Clean up temporary copies
-	catalog:withWriteAccessDo("Delete temporary copies", function()
-		for _, copy in ipairs(copiesToDelete) do
-			catalog:removePhoto(copy)
-		end
-	end)
-	
-	return success, errorMessage
 end
 
 --------------------------------------------------------------------------------
