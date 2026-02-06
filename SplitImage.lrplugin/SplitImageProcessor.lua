@@ -184,14 +184,31 @@ end
 -- @param format Export format (JPEG, PNG, TIFF)
 -- @param quality JPEG quality (0-100)
 -- @param progressCallback Function to call with progress updates
+-- @param imageSizeMmWidth Image width in mm (optional, for accurate passpartout calculation)
+-- @param imageSizeMmHeight Image height in mm (optional, for accurate passpartout calculation)
+-- @param dpi DPI for mm to pixel conversion (optional, defaults to 300)
 -- @return success, errorMessage
 --------------------------------------------------------------------------------
-function SplitImageProcessor.exportSplitImage(photo, cols, rows, passpartoutMm, exportPath, format, quality, progressCallback)
+function SplitImageProcessor.exportSplitImage(photo, cols, rows, passpartoutMm, exportPath, format, quality, progressCallback, imageSizeMmWidth, imageSizeMmHeight, dpi)
 	local catalog = LrApplication.activeCatalog()
 	
-	-- Get image dimensions
+	-- Get image dimensions in pixels
 	local width = photo:getRawMetadata("croppedWidth") or photo:getRawMetadata("width") or 1000
 	local height = photo:getRawMetadata("croppedHeight") or photo:getRawMetadata("height") or 1000
+	
+	-- Use provided DPI or default to 300
+	dpi = dpi or 300
+	
+	-- If image size in mm is provided, use it to calculate the effective image dimensions
+	-- Otherwise, use pixel dimensions directly
+	local effectiveWidth = width
+	local effectiveHeight = height
+	
+	if imageSizeMmWidth and imageSizeMmHeight then
+		-- Convert mm to pixels based on DPI
+		effectiveWidth = (imageSizeMmWidth / 25.4) * dpi
+		effectiveHeight = (imageSizeMmHeight / 25.4) * dpi
+	end
 	
 	local originalFileName = LrPathUtils.removeExtension(photo:getFormattedMetadata("fileName") or "photo")
 	
@@ -226,7 +243,7 @@ function SplitImageProcessor.exportSplitImage(photo, cols, rows, passpartoutMm, 
 					
 					-- Apply crop
 					local left, top, right, bottom = calculateCropForCell(
-						col, row, cols, rows, passpartoutMm, width, height
+						col, row, cols, rows, passpartoutMm, effectiveWidth, effectiveHeight, dpi
 					)
 					
 					copy:applyDevelopSettings({

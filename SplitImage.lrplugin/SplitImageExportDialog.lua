@@ -30,6 +30,11 @@ local function showExportDialog()
 			return
 		end
 		
+		-- Get first photo for metadata
+		local firstPhoto = photos[1]
+		local photoWidth = firstPhoto:getRawMetadata("croppedWidth") or firstPhoto:getRawMetadata("width") or 1000
+		local photoHeight = firstPhoto:getRawMetadata("croppedHeight") or firstPhoto:getRawMetadata("height") or 1000
+		
 		-- Create observable properties
 		local props = LrBinding.makePropertyTable(context)
 		props.gridColumns = 2
@@ -38,6 +43,44 @@ local function showExportDialog()
 		props.exportFormat = "JPEG"
 		props.exportQuality = 90
 		props.exportPath = LrPathUtils.getStandardFilePath("pictures")
+		
+		-- Image size properties (in mm)
+		props.imageSizeMmWidth = 200
+		props.imageSizeMmHeight = 150
+		props.imageDPI = 300
+		
+		-- Preview properties
+		props.previewInfo = ""
+		
+		-- Update preview info when settings change
+		local function updatePreviewInfo()
+			local cols = tonumber(props.gridColumns) or 2
+			local rows = tonumber(props.gridRows) or 2
+			local imgWidthMm = tonumber(props.imageSizeMmWidth) or 200
+			local imgHeightMm = tonumber(props.imageSizeMmHeight) or 150
+			local passpartoutMm = tonumber(props.passpartoutDistance) or 0
+			
+			-- Calculate cell dimensions
+			local totalPasspartoutX = passpartoutMm * (cols - 1)
+			local totalPasspartoutY = passpartoutMm * (rows - 1)
+			local cellWidthMm = (imgWidthMm - totalPasspartoutX) / cols
+			local cellHeightMm = (imgHeightMm - totalPasspartoutY) / rows
+			
+			props.previewInfo = string.format(
+				"Grid: %dx%d cells | Each cell: %.1f x %.1f mm | Total: %.1f x %.1f mm",
+				cols, rows, cellWidthMm, cellHeightMm, imgWidthMm, imgHeightMm
+			)
+		end
+		
+		-- Set up observers
+		props:addObserver("gridColumns", updatePreviewInfo)
+		props:addObserver("gridRows", updatePreviewInfo)
+		props:addObserver("passpartoutDistance", updatePreviewInfo)
+		props:addObserver("imageSizeMmWidth", updatePreviewInfo)
+		props:addObserver("imageSizeMmHeight", updatePreviewInfo)
+		
+		-- Initial update
+		updatePreviewInfo()
 		
 		-- Create the UI
 		local f = LrView.osFactory()
@@ -102,6 +145,93 @@ local function showExportDialog()
 					max = 100,
 					increment = 0.5,
 					precision = 1,
+				},
+			},
+			
+			f:separator { fill_horizontal = 1 },
+			
+			f:row {
+				f:static_text {
+					title = "Print Size Settings",
+					font = "<system/bold>",
+				},
+			},
+			
+			f:row {
+				spacing = f:label_spacing(),
+				f:static_text {
+					title = "Image Width (mm):",
+					width = LrView.share("label_width"),
+					alignment = "right",
+				},
+				f:edit_field {
+					value = LrView.bind("imageSizeMmWidth"),
+					width_in_digits = 6,
+					min = 10,
+					max = 5000,
+					increment = 10,
+					precision = 0,
+				},
+			},
+			
+			f:row {
+				spacing = f:label_spacing(),
+				f:static_text {
+					title = "Image Height (mm):",
+					width = LrView.share("label_width"),
+					alignment = "right",
+				},
+				f:edit_field {
+					value = LrView.bind("imageSizeMmHeight"),
+					width_in_digits = 6,
+					min = 10,
+					max = 5000,
+					increment = 10,
+					precision = 0,
+				},
+			},
+			
+			f:row {
+				spacing = f:label_spacing(),
+				f:static_text {
+					title = "Print DPI:",
+					width = LrView.share("label_width"),
+					alignment = "right",
+				},
+				f:edit_field {
+					value = LrView.bind("imageDPI"),
+					width_in_digits = 6,
+					min = 72,
+					max = 600,
+					increment = 50,
+					precision = 0,
+				},
+			},
+			
+			f:row {
+				f:static_text {
+					title = "Specify the final print size to ensure accurate passpartout spacing.",
+					width = 400,
+					height_in_lines = 1,
+					size = "small",
+				},
+			},
+			
+			f:separator { fill_horizontal = 1 },
+			
+			f:row {
+				f:static_text {
+					title = "Preview",
+					font = "<system/bold>",
+				},
+			},
+			
+			f:row {
+				f:static_text {
+					title = LrView.bind("previewInfo"),
+					width = 400,
+					height_in_lines = 2,
+					size = "small",
 				},
 			},
 			
@@ -192,9 +322,17 @@ local function showExportDialog()
 			local cols = tonumber(props.gridColumns) or 2
 			local rows = tonumber(props.gridRows) or 2
 			local distance = tonumber(props.passpartoutDistance) or 0
+			local imgWidthMm = tonumber(props.imageSizeMmWidth) or 200
+			local imgHeightMm = tonumber(props.imageSizeMmHeight) or 150
+			local dpi = tonumber(props.imageDPI) or 300
 			
 			if cols < 1 or rows < 1 then
 				LrDialogs.message("Invalid Grid Size", "Grid columns and rows must be at least 1.", "critical")
+				return
+			end
+			
+			if imgWidthMm < 10 or imgHeightMm < 10 then
+				LrDialogs.message("Invalid Image Size", "Image width and height must be at least 10mm.", "critical")
 				return
 			end
 			
@@ -226,7 +364,10 @@ local function showExportDialog()
 						function(current, total, caption)
 							progress:setPortionComplete((photoIndex - 1) * cols * rows + current - 1, #photos * cols * rows)
 							progress:setCaption(caption)
-						end
+						end,
+						imgWidthMm,
+						imgHeightMm,
+						dpi
 					)
 					
 					if success then
