@@ -311,4 +311,6 @@ end
 
 --------------------------------------------------------------------------------
 
-showDialog()
+LrTasks.startAsyncTask(function()
+	showDialog()
+end)

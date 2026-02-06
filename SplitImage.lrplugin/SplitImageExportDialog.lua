@@ -391,4 +391,6 @@ end
 
 --------------------------------------------------------------------------------
 
-showExportDialog()
+LrTasks.startAsyncTask(function()
+	showExportDialog()
+end)
