@@ -64,14 +64,31 @@ end
 -- @param passpartoutMm Distance between frames in mm
 -- @param createVirtualCopies Whether to create virtual copies
 -- @param stackWithOriginal Whether to stack with original
+-- @param imageSizeMmWidth Image width in mm (optional, for accurate passpartout calculation)
+-- @param imageSizeMmHeight Image height in mm (optional, for accurate passpartout calculation)
+-- @param dpi DPI for mm to pixel conversion (optional, defaults to 300)
 --------------------------------------------------------------------------------
-function SplitImageProcessor.splitImage(photo, cols, rows, passpartoutMm, createVirtualCopies, stackWithOriginal)
+function SplitImageProcessor.splitImage(photo, cols, rows, passpartoutMm, createVirtualCopies, stackWithOriginal, imageSizeMmWidth, imageSizeMmHeight, dpi)
 	local catalog = LrApplication.activeCatalog()
 	
-	-- Get image dimensions
+	-- Get image dimensions in pixels
 	local photoMetadata = photo:getFormattedMetadata("dimensions")
 	local width = photo:getRawMetadata("croppedWidth") or photo:getRawMetadata("width") or 1000
 	local height = photo:getRawMetadata("croppedHeight") or photo:getRawMetadata("height") or 1000
+	
+	-- Use provided DPI or default to 300
+	dpi = dpi or 300
+	
+	-- If image size in mm is provided, use it to calculate the effective image dimensions
+	-- Otherwise, use pixel dimensions directly
+	local effectiveWidth = width
+	local effectiveHeight = height
+	
+	if imageSizeMmWidth and imageSizeMmHeight then
+		-- Convert mm to pixels based on DPI
+		effectiveWidth = (imageSizeMmWidth / 25.4) * dpi
+		effectiveHeight = (imageSizeMmHeight / 25.4) * dpi
+	end
 	
 	local copies = {}
 	
@@ -106,7 +123,7 @@ function SplitImageProcessor.splitImage(photo, cols, rows, passpartoutMm, create
 				-- Apply crop to the virtual copy
 				catalog:withWriteAccessDo("Apply crop", function()
 					local left, top, right, bottom = calculateCropForCell(
-						col, row, cols, rows, passpartoutMm, width, height
+						col, row, cols, rows, passpartoutMm, effectiveWidth, effectiveHeight, dpi
 					)
 					
 					-- Set develop settings with crop
