@@ -149,7 +149,6 @@ local function showDialog()
 			LrTasks.startAsyncTask(function()
 				local progress = LrProgressScope({
 					title = "Splitting Images",
-					functionContext = context,
 				})
 				
 				progress:setPortionComplete(0, #photos)

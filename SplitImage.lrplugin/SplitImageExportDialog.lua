@@ -207,7 +207,6 @@ local function showExportDialog()
 			LrTasks.startAsyncTask(function()
 				local progress = LrProgressScope({
 					title = "Exporting Split Images",
-					functionContext = context,
 				})
 				
 				progress:setPortionComplete(0, #photos * cols * rows)
