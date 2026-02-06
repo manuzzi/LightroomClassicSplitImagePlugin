@@ -6,8 +6,6 @@ Core image processing logic for Split Image Plugin
 ------------------------------------------------------------------------------]]
 
 local LrApplication = import 'LrApplication'
-local LrPhoto = import 'LrPhoto'
-local LrDevelopController = import 'LrDevelopController'
 local LrExportSession = import 'LrExportSession'
 local LrPathUtils = import 'LrPathUtils'
 local LrFileUtils = import 'LrFileUtils'
