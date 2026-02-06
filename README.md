@@ -6,6 +6,9 @@ A powerful Adobe Lightroom Classic plugin that allows you to split images into a
 
 - **Customizable Grid**: Split images into any X by Y grid (e.g., 2x2, 3x3, 4x2, etc.)
 - **Passpartout Support**: Set distance between frames in millimeters for professional mounting
+- **Print Size Configuration**: Specify final print dimensions in mm for accurate passpartout calculations
+- **Real-time Preview**: Live calculation and preview of grid layout and cell dimensions
+- **DPI Control**: Configure print resolution (72-600 DPI) for precise output
 - **Virtual Copies**: Creates virtual copies linked to the original image for easy printing
 - **Stack Management**: Automatically stacks grid sections with the original image
 - **Export Function**: Optional export functionality to save split sections as separate files
@@ -38,12 +41,16 @@ This method creates virtual copies that remain in your Lightroom catalog:
    - **Grid Columns (X)**: Number of columns (1-20)
    - **Grid Rows (Y)**: Number of rows (1-20)
    - **Passpartout Distance (mm)**: Space between frames (0-100mm)
+   - **Image Width (mm)**: Final print width in millimeters
+   - **Image Height (mm)**: Final print height in millimeters
+   - **Print DPI**: Resolution for print (default: 300)
    - **Create as Virtual Copies**: Keep checked (recommended)
    - **Stack with Original**: Keep checked to organize sections with original
-4. Click **Split**
-5. The plugin will create virtual copies with appropriate crops applied
-6. Each section will be named: `original_filename_grid_XxY_rowR_colC`
-7. Sections are stacked with the original image for easy management
+4. The preview section shows calculated grid and cell dimensions
+5. Click **Split**
+6. The plugin will create virtual copies with appropriate crops applied
+7. Each section will be named: `original_filename_grid_XxY_rowR_colC`
+8. Sections are stacked with the original image for easy management
 
 ### Method 2: Export Split Images
 
@@ -55,13 +62,29 @@ This method exports split sections as separate image files:
    - **Grid Columns (X)**: Number of columns (1-20)
    - **Grid Rows (Y)**: Number of rows (1-20)
    - **Passpartout Distance (mm)**: Space between frames (0-100mm)
+   - **Image Width (mm)**: Final print width in millimeters
+   - **Image Height (mm)**: Final print height in millimeters
+   - **Print DPI**: Resolution for print (default: 300)
    - **Export Format**: Choose JPEG, PNG, or TIFF
    - **JPEG Quality**: Set quality (0-100, only applies to JPEG)
    - **Export to**: Choose destination folder
-4. Click **Export**
-5. Split sections will be exported as separate files
+4. The preview section shows calculated grid and cell dimensions
+5. Click **Export**
+6. Split sections will be exported as separate files
 
-## Understanding Passpartout Distance
+## Understanding Print Size and Passpartout Distance
+
+### Print Size Settings
+
+To ensure accurate passpartout spacing, specify your final print dimensions:
+
+- **Image Width (mm)**: The total width of your final print (e.g., 200mm for an 8" print)
+- **Image Height (mm)**: The total height of your final print (e.g., 150mm for a 6" print)
+- **Print DPI**: Resolution for printing (default: 300 DPI for high quality)
+
+The plugin converts these measurements to pixels and calculates precise crop areas that account for the passpartout spacing.
+
+### Passpartout Distance
 
 The passpartout distance represents the spacing between each frame when mounted. For example:
 
@@ -70,6 +93,16 @@ The passpartout distance represents the spacing between each frame when mounted.
 - **20mm**: 20mm space between each section (wider spacing for gallery walls)
 
 The plugin calculates the crop areas to account for this spacing, ensuring that when printed and mounted with the specified spacing, the image appears correctly assembled.
+
+### Example Calculation
+
+For a 300mm × 200mm print with a 2×2 grid and 10mm passpartout:
+- Total passpartout space: 10mm (1 gap horizontally), 10mm (1 gap vertically)
+- Available space: 290mm × 190mm
+- Each cell: 145mm × 95mm
+- When mounted with 10mm gaps, the complete image is reassembled correctly
+
+The **Preview** section in the dialog shows these calculations in real-time as you adjust settings.
 
 ## Printing Your Split Images
 
