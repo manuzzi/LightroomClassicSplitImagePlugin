@@ -11,8 +11,6 @@ A powerful Adobe Lightroom Classic plugin that allows you to split images into a
 - **DPI Control**: Configure print resolution (72-600 DPI) for precise output
 - **Virtual Copies**: Creates virtual copies linked to the original image for easy printing
 - **Stack Management**: Automatically stacks grid sections with the original image
-- **Export Function**: Optional export functionality to save split sections as separate files
-- **Multiple Formats**: Export as JPEG, PNG, or TIFF
 - **Metadata Linking**: Each section is tagged and linked to the original image
 
 ## Requirements
@@ -31,7 +29,7 @@ A powerful Adobe Lightroom Classic plugin that allows you to split images into a
 
 ## Usage
 
-### Method 1: Split Images in Library (Recommended)
+### Split Images in Library
 
 This method creates virtual copies that remain in your Lightroom catalog:
 
@@ -52,25 +50,7 @@ This method creates virtual copies that remain in your Lightroom catalog:
 7. Each section will be named: `original_filename_grid_XxY_rowR_colC`
 8. Sections are stacked with the original image for easy management
 
-### Method 2: Export Split Images
-
-This method exports split sections as separate image files:
-
-1. Select one or more photos in your Lightroom catalog
-2. Go to **File > Plug-in Extras > Split Image into Grid...**
-3. Configure the split settings:
-   - **Grid Columns (X)**: Number of columns (1-20)
-   - **Grid Rows (Y)**: Number of rows (1-20)
-   - **Passpartout Distance (mm)**: Space between frames (0-100mm)
-   - **Image Width (mm)**: Final print width in millimeters
-   - **Image Height (mm)**: Final print height in millimeters
-   - **Print DPI**: Resolution for print (default: 300)
-   - **Export Format**: Choose JPEG, PNG, or TIFF
-   - **JPEG Quality**: Set quality (0-100, only applies to JPEG)
-   - **Export to**: Choose destination folder
-4. The preview section shows calculated grid and cell dimensions
-5. Click **Export**
-6. Split sections will be exported as separate files
+> **Note**: To export your split images, use Lightroom's built-in Export feature on the virtual copies created by this plugin.
 
 ## Understanding Print Size and Passpartout Distance
 
@@ -108,8 +88,8 @@ The **Preview** section in the dialog shows these calculations in real-time as y
 
 After splitting:
 
-1. Select the virtual copies (or locate exported files)
-2. Use Lightroom's Print module or standard export for printing
+1. Select the virtual copies created by the plugin
+2. Use Lightroom's Print module or Export feature to print/export the sections
 3. Each section maintains its crop and can be printed directly
 4. When mounting, use the passpartout distance you specified to space the frames
 
@@ -125,7 +105,6 @@ After splitting:
 SplitImage.lrplugin/
 ├── Info.lua                    # Plugin manifest
 ├── SplitImageDialog.lua        # Library menu dialog
-├── SplitImageExportDialog.lua  # Export menu dialog
 └── SplitImageProcessor.lua     # Core processing logic
 ```
 
@@ -147,10 +126,6 @@ Each split section includes:
 **Grid sections don't align:**
 - Check that passpartout distance is correctly set
 - Verify original image has sufficient resolution
-
-**Export fails:**
-- Ensure export path exists and is writable
-- Check available disk space
 
 ## License
 

@@ -12,14 +12,6 @@ return {
 	LrToolkitIdentifier = 'com.manuzzi.lightroom.splitimage',
 	LrPluginName = LOC "$$$/SplitImage/PluginName=Split Image",
 	
-	LrExportMenuItems = {
-		{
-			title = LOC "$$$/SplitImage/ExportMenuItem=Split Image into Grid...",
-			file = "SplitImageExportDialog.lua",
-			enabledWhen = "photosSelected",
-		},
-	},
-	
 	LrLibraryMenuItems = {
 		{
 			title = LOC "$$$/SplitImage/LibraryMenuItem=Split Image into Grid...",
